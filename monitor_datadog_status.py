@@ -1,7 +1,6 @@
 import argparse
 import requests
 import time
-from threading import Thread, Timer
 
 
 def monitor_datadog_status(freq: int) -> None:
