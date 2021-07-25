@@ -4,32 +4,39 @@ import time
 
 
 def monitor_datadog_status(freq: int) -> None:
-    # The API URL
+    """
+    this function prints DataDog's non-operational components status at a regular frequency.
+    :param freq: the frequency (in seconds) in which to check the status
+    """
+
+    # defining helper function
+    def process_datadog_status(data: dict) -> None:
+        """
+        helper function to process/filter the json respond from the API,
+        and print the non-operational components.
+        :param data: the json respond from the API.
+        """
+        for component in data["components"]:
+            if "operational" not in component["status"]:
+                now = time.strftime("%d/%m/%Y %H:%M:%S")
+                print(f'{now} Component {component["name"]} is in status: {component["status"]}')
+
+    # The API's URL
     URL = "https://status.datadoghq.com/api/v2/components.json"
-    starttime = time.time()
+    start_time = int(time.time())
+    # making a request every @freq seconds
     while 1:
-        proccess_datadog_status(requests.get(URL).json())
-        time.sleep(freq - (time.time() - starttime) % freq)
-
-
-def proccess_datadog_status(data: dict) -> None:
-    for component in data["components"]:
-        # checks if the status is diffrent from "operational"
-        if "operational" not in component["status"]:
-            # getting the time and date
-            now = time.strftime("%d/%m/%Y %H:%M:%S")
-            # printing out to STDIN
-            print(
-                f'{now} Component {component["name"]} is in status: {component["status"]}')
+        process_datadog_status(requests.get(URL).json())
+        time.sleep(freq - (time.time() - start_time) % freq)
 
 
 if __name__ == '__main__':
+    # creating parser for CLI and it's arguments
     parser = argparse.ArgumentParser(
-        description="checks DataDog's componanet status at a regular frequency.")
+        description="checks DataDog's component status at a regular frequency.")
 
     parser.add_argument('--frequency', required=True, type=int,
-                        help="Enter the frequency at which you want to DataDog's componanet status.")
+                        help="Enter the frequency at which you want to check DataDog's component status.")
 
     args = parser.parse_args()
-    freq = args.frequency
     monitor_datadog_status(args.frequency)
