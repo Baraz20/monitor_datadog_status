@@ -3,6 +3,7 @@ import requests
 import time
 from threading import Thread, Timer
 
+
 def monitor_datadog_status(freq: int) -> None:
     # The API URL
     URL = "https://status.datadoghq.com/api/v2/components.json"
@@ -10,6 +11,7 @@ def monitor_datadog_status(freq: int) -> None:
     while 1:
         proccess_datadog_status(requests.get(URL).json())
         time.sleep(freq - (time.time() - starttime) % freq)
+
 
 def proccess_datadog_status(data: dict) -> None:
     for component in data["components"]:
