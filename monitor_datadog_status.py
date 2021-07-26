@@ -70,7 +70,8 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--frequency', required=True, type=float,
                         help="Enter the frequency at which you want to check DataDog's component status.")
     # testing argument - flase by default
-    parser.add_argument('--test', action='store_false')
+    parser.add_argument('--test', action='store_false',
+                        help="this flag enables testing mode - statuses are forged")
 
     args = parser.parse_args()
 
