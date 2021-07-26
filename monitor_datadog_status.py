@@ -2,6 +2,10 @@ import argparse
 import requests
 import time
 import threading
+import random
+
+# GLOBAL
+test_mode = False
 
 
 class SetFrequency(threading.Thread):
@@ -35,7 +39,14 @@ def monitor_datadog_status() -> None:
         and print the non-operational components.
         :param data: the json respond from the API.
         """
+        # this is only used for testing mode (* for now)
+        statuses = set("operational", "partial_outage",
+                       "major_outage", "degraded_performance", "maintenance")
+
         for component in data["components"]:
+            if test_mode:
+                print("TESTING MODE IS ON - THIS IS NOT THE REAL STATUS!")
+                component["status"] = random.choice(statuses)
             if "operational" not in component["status"]:
                 now = time.strftime("%d/%m/%Y %H:%M:%S")
                 print(
@@ -54,11 +65,16 @@ if __name__ == '__main__':
     # creating parser for CLI and it's arguments
     parser = argparse.ArgumentParser(
         description="checks DataDog's component status at a regular frequency.")
-
-    parser.add_argument('--frequency', required=True, type=int,
+    # frequency argument
+    parser.add_argument('-f', '--frequency', required=True, type=float,
                         help="Enter the frequency at which you want to check DataDog's component status.")
+    # testing argument - flase by default
+    parser.add_argument('--test', action='store_false')
 
     args = parser.parse_args()
+
+    # if in testing mode
+    test_mode = args.test
 
     # Using a non-blocking way to monitor on a regular frequency
     status_checker = SetFrequency(
