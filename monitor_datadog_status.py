@@ -3,33 +3,30 @@ import requests
 import time
 import threading
 
-
 class SetFrequency(threading.Thread):
-    def __init__(self, func, event, freq: int):
+    def __init__(self, func, freq: int):
         '''calls the @func function after @freq seconds
         :param func: function to call
-        :param event: external event for controlling out side of the class
         :param freq: time in seconds between each call of the @func function
         '''
         self.func = func
-        self.event = event
         self.freq = freq
+
         super().__init__()
+        self.setDaemon(True)
 
     def run(self) -> None:
         start_time = time.time()
-
-        # accurate way to calculate time to wait
-        while not self.event.wait(self.freq - (time.time() - start_time) % self.freq):
+        while 1:
             self.func()
+            # accurate way to calculate time to wait
+            time.sleep(self.freq - (time.time() - start_time) % self.freq)
 
 
-def monitor_datadog_status(freq: int) -> None:
+def monitor_datadog_status() -> None:
     """
-    this function prints DataDog's non-operational components status at a regular frequency.
-    :param freq: the frequency (in seconds) in which to check the status
+    this function prints DataDog's non-operational components statuss.
     """
-
     # defining helper function to process respond
     def process_datadog_status(data: dict) -> None:
         """
@@ -62,8 +59,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Using a non-blocking way to
-    event = threading.Event()
+    # Using a non-blocking way to monitor on a regular frequency
     status_checker = SetFrequency(
-        monitor_datadog_status, event, args.frequency)
+        monitor_datadog_status, args.frequency)
     status_checker.start()
+    status_checker.join()
