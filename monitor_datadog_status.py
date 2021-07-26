@@ -4,20 +4,23 @@ import time
 import threading
 
 
-class SetInterval(threading.Thread):
-    def __init__(self, func, event, freq : int):
+class SetFrequency(threading.Thread):
+    def __init__(self, func, event, freq: int):
         '''calls the @func function after @freq seconds
-        :param callback: callback function to invoke
-        :param event: external event for controlling the update operation
+        :param func: function to call
+        :param event: external event for controlling out side of the class
         :param freq: time in seconds between each call of the @func function
         '''
         self.func = func
         self.event = event
         self.freq = freq
-        super(SetInterval, self).__init__()
+        super().__init__()
 
-    def run(self):
-        while not self.event.wait(self.freq):
+    def run(self) -> None:
+        start_time = time.time()
+
+        # accurate way to calculate time to wait
+        while not self.event.wait(self.freq - (time.time() - start_time) % self.freq):
             self.func()
 
 
@@ -27,7 +30,7 @@ def monitor_datadog_status(freq: int) -> None:
     :param freq: the frequency (in seconds) in which to check the status
     """
 
-    # defining helper function
+    # defining helper function to process respond
     def process_datadog_status(data: dict) -> None:
         """
         helper function to process/filter the json respond from the API,
@@ -42,16 +45,11 @@ def monitor_datadog_status(freq: int) -> None:
 
     # The API's URL
     URL = "https://status.datadoghq.com/api/v2/components.json"
-    start_time = int(time.time())
-    # making a request every @freq seconds
-    while 1:
-        r = requests.get(URL)
-        if r.status_code == 200:
-            process_datadog_status(r.json())
-        else:
-            print("Faild to get API respond... retrying")
-        # accurate way to calculate time to sleep
-        time.sleep(freq - (time.time() - start_time) % freq)
+    res = requests.get(URL)
+    if res.status_code == 200:
+        process_datadog_status(res.json())
+    else:
+        print("Faild to get API respond...")
 
 
 if __name__ == '__main__':
@@ -63,4 +61,9 @@ if __name__ == '__main__':
                         help="Enter the frequency at which you want to check DataDog's component status.")
 
     args = parser.parse_args()
-    monitor_datadog_status(args.frequency)
+
+    # Using a non-blocking way to
+    event = threading.Event()
+    status_checker = SetFrequency(
+        monitor_datadog_status, event, args.frequency)
+    status_checker.start()
