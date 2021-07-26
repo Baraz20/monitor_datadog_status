@@ -3,6 +3,7 @@ import requests
 import time
 import threading
 
+
 class SetFrequency(threading.Thread):
     def __init__(self, func, freq: int):
         '''calls the @func function after @freq seconds
