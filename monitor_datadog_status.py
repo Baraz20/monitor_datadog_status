@@ -40,12 +40,13 @@ def monitor_datadog_status() -> None:
         :param data: the json respond from the API.
         """
         # this is only used for testing mode (* for now)
-        statuses = set("operational", "partial_outage",
-                       "major_outage", "degraded_performance", "maintenance")
+        statuses = ["operational", "partial_outage",
+                    "major_outage", "degraded_performance", "maintenance"]
 
+        if test_mode:
+            print("THIS IS TESTING MODE, ALL OF THE STATUSES ARE FORGED")
         for component in data["components"]:
             if test_mode:
-                print("TESTING MODE IS ON - THIS IS NOT THE REAL STATUS!")
                 component["status"] = random.choice(statuses)
             if "operational" not in component["status"]:
                 now = time.strftime("%d/%m/%Y %H:%M:%S")
