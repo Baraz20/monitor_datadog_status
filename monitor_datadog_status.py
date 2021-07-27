@@ -18,7 +18,7 @@ class SetFrequency(threading.Thread):
 
     def run(self) -> None:
         start_time = time.time()
-        while 1:
+        while self.is_alive():
             self.func()
             # accurate way to calculate time to wait
             time.sleep(self.freq - (time.time() - start_time) % self.freq)
