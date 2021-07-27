@@ -26,7 +26,7 @@ class SetFrequency(threading.Thread):
 
 def monitor_datadog_status() -> None:
     """
-    this function prints DataDog's non-operational components statuss.
+    prints DataDog's non-operational components statuss.
     """
     # defining helper function to process respond
     def process_datadog_status(data: dict) -> None:
